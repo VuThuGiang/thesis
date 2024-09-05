@@ -1,0 +1,83 @@
+h2 {
+    font-family: Arial, sans-serif;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.table {
+    
+    border-collapse: collapse;
+    font-size: 14px;
+    
+}
+
+.table th,
+.table td {
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.table th {
+    background-color: #ff1493;
+    color: #333;
+}
+
+.table tr:hover {
+    background-color: #ddd;
+}
+.btn {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 0.25rem;
+    border: 1px solid transparent;
+}
+
+.btn-view {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-view:hover {
+    background-color: #138496;
+    border-color: #138496;
+}
+
+.btn-edit {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-edit:hover {
+    background-color: #e0a800;
+    border-color: #e0a800;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+}
+.btn-add {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #41a728;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 0.25rem;
+    border: 1px solid transparent;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    
+}
+
+.btn-add:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+

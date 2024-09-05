@@ -1,0 +1,66 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+}
+
+.destination-link {
+    text-decoration: none; /* Xóa bỏ gạch chân dưới liên kết */
+    color: inherit; /* Giữ nguyên màu sắc của văn bản */
+}
+
+.destination-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+}
+
+.destination-card img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: transform 0.3s;
+}
+
+.destination-card .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Màu nền cho lớp phủ */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    text-align: center;
+    opacity: 1; /* Luôn hiển thị lớp phủ */
+    transition: background 0.3s; /* Hiệu ứng mờ nền khi di chuột */
+}
+
+.destination-card .overlay-text h3 {
+    margin-bottom: 0;
+    font-size: 24px;
+    font-weight: bold;
+    opacity: 0.8; /* Tên địa điểm hiện sẵn, mờ nhẹ */
+    transition: opacity 0.3s; /* Hiệu ứng rõ tên địa điểm khi di chuột */
+    color: #fff;
+}
+
+.destination-card:hover {
+    transform: scale(1.05);
+}
+
+.destination-card:hover img {
+    transform: scale(1.1); /* Phóng to ảnh khi hover */
+}
+
+.destination-card:hover .overlay {
+    background: rgba(0, 0, 0, 0.7); /* Làm đậm nền khi di chuột */
+}
+
+.destination-card:hover .overlay-text h3 {
+    opacity: 1; /* Làm rõ tên địa điểm khi di chuột */
+}

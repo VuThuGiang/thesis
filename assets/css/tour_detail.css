@@ -1,0 +1,503 @@
+
+
+        
+
+    .hero-wrap {
+        background-size: cover;
+        background-position: center bottom;
+        width: 100%;
+        height: 500px;
+        position: relative;
+    }
+
+    .hero-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-wrap .slider-text {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card-title {
+        font-size: 1.75rem;
+    }
+
+    .table thead th {
+        vertical-align: middle;
+        text-align: center;
+        background-color: #343a40;
+        color: white;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .table-bordered {
+        border: 1px solid #dee2e6;
+    }
+
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid #dee2e6;
+    }
+
+    .tour-title {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .tour-button {
+        margin-left: 20px;
+        background-color: orange;
+        color: red;
+    }
+
+    .pricing-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 18px;
+        text-align: left;
+    }
+
+    .pricing-table th,
+    .pricing-table td {
+        border: 1px solid #dddddd;
+        padding: 8px;
+    }
+
+    .pricing-table th {
+        background-color: #FFD580;
+        color: black;
+        text-align: center;
+    }
+
+    .pricing-table td {
+        text-align: center;
+    }
+
+    .price-value {
+        color: red;
+        font-weight: bold;
+    }
+
+    .btn-book {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .btn-book button {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+        background-color: transparent;
+        border: none;
+    }
+
+    .btn-book button:hover {
+        color: red;
+        text-decoration: underline;
+    }
+
+    .book-now-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 10px;
+    }
+
+    .average-rating-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .average-rating {
+        display: flex;
+        align-items: center;
+        margin-right: 10px;
+    }
+
+    .rating-value {
+        background-color: orange;
+        color: white;
+        font-size: 24px;
+        padding: 10px;
+        border-radius: 5px;
+        margin-right: 10px;
+    }
+
+    .stars {
+        display: flex;
+        align-items: center;
+        font-size: 25px;
+        margin-block-start: -15px;
+    }
+
+    .stars i {
+        color: orange;
+        margin-right: 2px;
+    }
+
+    .total-reviews {
+        font-size: 16px;
+        color: #666;
+        margin-left: -135px;
+        margin-block-start: auto;
+    }
+
+    .review-section {
+        margin-top: 30px;
+    }
+
+    .review-item {
+        border-bottom: 1px solid #ddd;
+        padding: 15px 0;
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+    }
+
+    .review-item .username {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .review-item .rating i {
+        color: #FFC107;
+    }
+
+    .review-item .created-at {
+        font-size: 0.9rem;
+        color: #999;
+        margin-bottom: 10px;
+    }
+
+    .review-item .review-text {
+        font-size: 1rem;
+    }
+
+    .review-item .user-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+
+    .review-item .review-header {
+        display: flex;
+        align-items: center;
+    }
+
+    /* -------------------------------------------------------------------------------------- */
+    .hero-wrap {
+        background-size: cover;
+        background-position: center bottom;
+        width: 100%;
+        height: 500px;
+        position: relative;
+    }
+
+    .hero-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-wrap .slider-text {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card-title {
+        font-size: 1.75rem;
+    }
+
+    .table thead th {
+        vertical-align: middle;
+        text-align: center;
+        background-color: #343a40;
+        color: white;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .table-bordered {
+        border: 1px solid #dee2e6;
+    }
+
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid #dee2e6;
+    }
+
+    .tour-title {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .tour-button {
+        margin-left: 20px;
+        background-color: orange;
+        color: red;
+    }
+
+    .pricing-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 18px;
+        text-align: left;
+    }
+
+    .pricing-table th,
+    .pricing-table td {
+        border: 1px solid #dddddd;
+        padding: 8px;
+    }
+
+    .pricing-table th {
+        background-color: #FFD580;
+        color: black;
+        text-align: center;
+    }
+
+    .pricing-table td {
+        text-align: center;
+    }
+
+    .price-value {
+        color: red;
+        font-weight: bold;
+    }
+
+    .btn-book {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .btn-book button {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+        background-color: transparent;
+        border: none;
+    }
+
+    .btn-book button:hover {
+        color: red;
+        text-decoration: underline;
+    }
+
+    .book-now-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 10px;
+    }
+
+    .average-rating-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .average-rating {
+        display: flex;
+        align-items: center;
+        margin-right: 10px;
+    }
+
+    .rating-value {
+        background-color: orange;
+        color: white;
+        font-size: 24px;
+        padding: 10px;
+        border-radius: 5px;
+        margin-right: 10px;
+    }
+
+    .stars {
+        display: flex;
+        align-items: center;
+        font-size: 25px;
+        margin-block-start: -15px;
+    }
+
+    .stars i {
+        color: orange;
+        margin-right: 2px;
+    }
+
+    .total-reviews {
+        font-size: 16px;
+        color: #666;
+        margin-left: -155px;
+        margin-block-start: auto;
+    }
+
+    .review-section {
+        margin-top: 30px;
+    }
+
+    .review-item {
+        border-bottom: 1px solid #ddd;
+        padding: 15px 0;
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+    }
+
+    .review-item .username {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .review-item .rating i {
+        color: #FFC107;
+    }
+
+    .review-item .created-at {
+        font-size: 0.9rem;
+        color: #999;
+        margin-bottom: 10px;
+    }
+
+    .review-item .review-text {
+        font-size: 1rem;
+        margin-left: 60px;
+    }
+
+    .review-item .user-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+
+    .review-item .review-header {
+        display: flex;
+        align-items: center;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        list-style: none;
+        padding: 0;
+        margin-block-start: 10px;
+    }
+
+    .pagination li {
+        margin: 0 5px;
+    }
+
+    .pagination a {
+        color: orange;
+        padding: 10px 15px;
+        text-decoration: none;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        display: block;
+    }
+
+    .pagination a:hover {
+        background-color: #eee;
+    }
+
+    .pagination .active a {
+        background-color: orange;
+        color: white;
+        border: 1px solid orange;
+    }
+
+    .page-item.active .page-link {
+        z-index: 3;
+        color: #fff;
+        background-color: orange;
+        border-color: orange;
+    }
+
+    /* New styles for the itinerary table */
+    .itinerary-table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+        font-size: 16px;
+    }
+
+    .itinerary-table th,
+    .itinerary-table td {
+        border: 1px solid #dddddd;
+        padding: 8px;
+        text-align: center;
+    }
+
+    .itinerary-table th {
+        background-color: orange;
+        color: white;
+    }
+
+    .itinerary-table td {
+        background-color: #f9f9f9;
+    }
+
+    .itinerary-day {
+        font-weight: bold;
+        color: orange;
+        text-align: left;
+    }
+
+    .itinerary-activity {
+        text-align: left;
+    }

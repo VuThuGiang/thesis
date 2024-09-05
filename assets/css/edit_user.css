@@ -1,0 +1,161 @@
+/* Ensure the styles only apply to the account settings section */
+#account-settings {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background-color: #f9f9f9;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+#account-settings .sidebar-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#account-settings .sidebar1
+ {
+    width: 250px;
+    height: 150px;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 20px;
+    
+}
+
+#account-settings .sidebar2 {
+    width: 250px;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+#account-settings .profile1 {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-left: 30px;
+
+}
+
+#account-settings .profile1 img {
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    margin-right: 10px;
+}
+
+#account-settings .profile-name1 {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#account-settings .profile-status1 {
+    color: gray;
+}
+
+#account-settings .menu-section1 {
+    margin-top: 20px;
+}
+
+#account-settings .menu-section1 h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+#account-settings .menu-section1 ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#account-settings .menu-section1 ul li {
+    margin-bottom: 10px;
+}
+
+#account-settings .menu-section1 ul li a {
+    text-decoration: none;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#account-settings .icon1 {
+    margin-right: 10px;
+}
+
+#account-settings .new1 {
+    background-color: red;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
+#account-settings .container1 {
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    width: 660px;
+    margin-left: 30px;
+    height: 402px;
+}
+#account-settings .form-section1 {
+    margin-bottom: 20px;
+}
+
+#account-settings .form-section1 h3 {
+    font-size: 18px;
+    margin: 0 0 20px;
+}
+
+#account-settings .form-group1 {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+#account-settings .form-group1 label {
+    width: 20%;
+    font-size: 14px;
+    align-self: center;
+}
+
+#account-settings .form-group1 input,
+#account-settings .form-group1 select {
+    width: 75%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#account-settings .save-button1 {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#account-settings .save-button1 button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#account-settings .save-button1 button:hover {
+    background-color: #45a049;
+}
+.edit-avatar-label {
+    border-radius: 3px;
+    background-color: #ccc;
+    font-size: 12px;
+    margin-left: 7px;
+    margin-block-start: 5px;
+}

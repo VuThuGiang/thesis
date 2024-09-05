@@ -1,0 +1,214 @@
+/* Định dạng cho container của thẻ bài viết */
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin-top: 30px;
+}
+
+/* Định dạng cho từng mục thẻ bài viết */
+.card-item {
+    flex: 0 0 45%;
+    margin-bottom: 30px;
+}
+
+/* Định dạng cho thẻ bài viết */
+.card {
+    border: none;
+    /* Loại bỏ viền */
+    border-radius: 10px;
+    /* Góc bo tròn nhẹ */
+    overflow: hidden;
+    /* Đảm bảo nội dung không tràn ra ngoài */
+    background-color: #276bb0;
+    /* Màu nền khác không phải màu trắng */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Thêm đổ bóng để tạo chiều sâu */
+    transition: transform 0.3s, box-shadow 0.3s;
+    /* Hiệu ứng hover */
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    /* Hiệu ứng hover khi nổi lên */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    /* Tăng đổ bóng khi hover */
+}
+
+/* Định dạng cho phần nội dung của thẻ bài viết */
+.card-body {
+    padding: 20px;
+    /* Tăng padding để nội dung thoáng hơn */
+    position: relative;
+    background-color: transparent;
+    /* Nền trong suốt để lộ màu nền của thẻ */
+}
+
+/* Định dạng cho tiêu đề của thẻ bài viết */
+.card-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    /* Điều chỉnh kích thước tiêu đề */
+    margin-bottom: 15px;
+    /* Khoảng cách dưới tiêu đề */
+}
+
+/* Định dạng cho văn bản của thẻ bài viết */
+.card-text {
+    font-size: 0.95rem;
+    /* Điều chỉnh kích thước văn bản */
+    color: #6c757d;
+    margin-bottom: 20px;
+    /* Khoảng cách dưới văn bản */
+}
+
+/* Định dạng cho biểu tượng trong phần thông tin của thẻ bài viết */
+.card .d-flex {
+    margin-bottom: 10px;
+    /* Khoảng cách giữa phần thông tin và tiêu đề */
+}
+
+/* Định dạng cho nút trong thẻ bài viết */
+.btn-danger {
+    background-color: #e74c3c;
+    /* Màu đỏ cho nút */
+    border: none;
+    padding: 10px 20px;
+    /* Tăng padding cho nút */
+    font-size: 0.9rem;
+    /* Kích thước chữ trên nút */
+    text-transform: uppercase;
+    /* Viết hoa toàn bộ chữ trên nút */
+    font-weight: bold;
+    /* Đậm chữ trên nút */
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+    /* Màu đậm hơn khi hover */
+}
+
+/* Định dạng cho liên kết thẻ bài viết */
+a.card-link {
+    text-decoration: none;
+    /* Bỏ gạch chân */
+}
+
+a.card-link:hover {
+    text-decoration: none;
+    /* Giữ nguyên khi hover */
+}
+
+/* Định dạng cho thanh icon */
+.icon-bar {
+    background: #ffffff;
+    padding: 20px 0;
+    margin-top: 185px;
+    width: 65%;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-around;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Định dạng cho từng mục trong thanh icon */
+.icon-bar .nav-item {
+    margin-right: 70px;
+    flex-shrink: 0;
+}
+
+/* Định dạng cho biểu tượng trong thanh icon */
+.icon-bar .nav-item i {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    font-size: 25px;
+    color: orange;
+}
+
+/* Định dạng cho liên kết trong thanh icon */
+.icon-bar .nav-link {
+    color: black;
+}
+
+.icon-bar .nav-link:hover {
+    color: orange;
+}
+
+/* Định dạng bổ sung */
+.card img {
+    width: 100%;
+    /* Làm ảnh vừa với khung thẻ */
+    height: auto;
+    display: block;
+}
+
+.icon-bar {
+    background-color: #f8f9fa;
+    /* Màu nền của thanh icon */
+    padding: 10px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Đổ bóng nhẹ */
+}
+
+.icon-bar .container5 {
+    max-width: 1000px;
+    /* Độ rộng tối đa của container */
+    margin: 0 auto;
+    /* Căn giữa container */
+}
+
+.icon-bar ul.nav {
+    list-style: none;
+    /* Loại bỏ bullet points */
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: space-around;
+    /* Căn đều các icon */
+}
+
+.icon-bar .nav-item {
+    flex: 1;
+    text-align: center;
+}
+
+.icon-bar .nav-link {
+    color: #000;
+    /* Màu chữ */
+    font-weight: bold;
+    padding: 10px;
+    text-decoration: none;
+    /* Loại bỏ gạch chân */
+    transition: color 0.3s, background-color 0.3s;
+    /* Hiệu ứng khi hover */
+}
+
+.icon-bar .nav-link:hover {
+    background-color: #e0e0e0;
+    /* Màu nền khi hover */
+    color: #ff6f61;
+    /* Màu chữ khi hover */
+    border-radius: 8px;
+    /* Bo góc nhẹ */
+}
+
+.icon-bar .nav-link i {
+    font-size: 24px;
+    /* Kích thước của icon */
+    margin-bottom: 5px;
+    /* Khoảng cách dưới icon */
+    display: block;
+    /* Đảm bảo icon là một khối */
+}
+
+.icon-bar .nav-link div {
+    font-size: 14px;
+    /* Kích thước của chữ dưới icon */
+    margin-top: 5px;
+    /* Khoảng cách trên chữ */
+}
