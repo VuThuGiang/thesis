@@ -10,37 +10,6 @@ if (!$user_id) {
 }
 
 
-// Thêm đoạn mã sau để xử lý AJAX kiểm tra trạng thái thanh toán
-if (isset($_GET['check_payment_status']) && $_GET['check_payment_status'] == 'true') {
-    $tour_id = $_GET['tour_id'] ?? null;
-    $user_id = $_SESSION['uid'] ?? null;
-
-    if (!$tour_id || !$user_id) {
-        echo 'invalid';
-        exit;
-    }
-
-    // Lấy dữ liệu giao dịch từ Casso API
-    $cassoData = getCassoTransactions();
-
-    if ($cassoData) {
-        foreach ($cassoData['data']['records'] as $transaction) {
-            if (strpos($transaction['description'], "Booking ID: $tour_id") !== false && $transaction['amount'] > 0) {
-                // Nếu tìm thấy giao dịch, cập nhật trạng thái thanh toán thành 'paid'
-                $query = "UPDATE bookings SET payment_status = 'paid' WHERE user_id = ? AND tour_id = ? AND payment_status = 'pending'";
-                $stmt = $con->prepare($query);
-                $stmt->bind_param("ii", $user_id, $tour_id);
-                $stmt->execute();
-                echo 'paid';
-                exit;
-            }
-        }
-    }
-
-    echo 'unpaid';
-    exit;
-}
-
 function getCassoTransactions()
 {
     $url = 'https://oauth.casso.vn/v2/transactions?page=&pageSize=100&sort=DESC';
@@ -401,6 +370,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <h2>Thanh toán qua VietQR</h2>
                 <p>Vui lòng quét mã QR để thanh toán</p>
                 <img id="qr_code" alt="QR Code Thanh Toán" class="qr-code-image" style="width: fit-content; height:fit-content">
+                <div id="countdown-timer" style="font-size: 20px; color: red; margin-top: 10px;">
+                    Thời gian còn lại để hoàn tất thanh toán: <span id="timer">15:00</span>
+                </div>
             </div>
         </form>
         <?php if ($bookingSuccess) : ?>
@@ -423,11 +395,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             var paymentMethod = document.getElementById('payment-method').value;
             var selectedPaymentMethodInput = document.getElementById('selected-payment-method');
 
-            if (paymentMethod === 'online') {
-                document.querySelector('.form-step[data-step="4"]').style.display = 'block';
-            } else {
-                document.querySelector('.form-step[data-step="4"]').style.display = 'block'; // Vẫn hiển thị bước 4 cho cả hai
-            }
+            // if (paymentMethod === 'online') {
+            //     document.querySelector('.form-step[data-step="4"]').style.display = 'block';
+            // } else {
+            //     document.querySelector('.form-step[data-step="4"]').style.display = 'block'; // Vẫn hiển thị bước 4 cho cả hai
+            // }
 
             selectedPaymentMethodInput.value = paymentMethod; // Cập nhật giá trị cho input ẩn
         }
