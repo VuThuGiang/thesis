@@ -2,10 +2,43 @@
 require('/laragon/www/dulich/connection.php');
 require('/laragon/www/dulich/include/nav.php');
 
+
 $user_id = $_SESSION['uid'] ?? null;
 
 if (!$user_id) {
     die("Bạn cần đăng nhập để đặt tour.");
+}
+
+
+// Thêm đoạn mã sau để xử lý AJAX kiểm tra trạng thái thanh toán
+if (isset($_GET['check_payment_status']) && $_GET['check_payment_status'] == 'true') {
+    $tour_id = $_GET['tour_id'] ?? null;
+    $user_id = $_SESSION['uid'] ?? null;
+
+    if (!$tour_id || !$user_id) {
+        echo 'invalid';
+        exit;
+    }
+
+    // Lấy dữ liệu giao dịch từ Casso API
+    $cassoData = getCassoTransactions();
+
+    if ($cassoData) {
+        foreach ($cassoData['data']['records'] as $transaction) {
+            if (strpos($transaction['description'], "Booking ID: $tour_id") !== false && $transaction['amount'] > 0) {
+                // Nếu tìm thấy giao dịch, cập nhật trạng thái thanh toán thành 'paid'
+                $query = "UPDATE bookings SET payment_status = 'paid' WHERE user_id = ? AND tour_id = ? AND payment_status = 'pending'";
+                $stmt = $con->prepare($query);
+                $stmt->bind_param("ii", $user_id, $tour_id);
+                $stmt->execute();
+                echo 'paid';
+                exit;
+            }
+        }
+    }
+
+    echo 'unpaid';
+    exit;
 }
 
 function getCassoTransactions()
@@ -68,9 +101,9 @@ $vouchers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $bookingSuccess = false;
 
-// Kiểm tra trạng thái thanh toán nếu phương thức là online và trạng thái là unpaid
+// Kiểm tra trạng thái thanh toán nếu phương thức là online và trạng thái là pending
 if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['check_payment'])) {
-    $query = "SELECT booking_date FROM bookings WHERE user_id = ? AND tour_id = ? AND payment_status = 'unpaid'";
+    $query = "SELECT booking_date FROM bookings WHERE user_id = ? AND tour_id = ? AND payment_status = 'pending'";
     $stmt = $con->prepare($query);
     $stmt->bind_param("ii", $user_id, $tour_id);
     $stmt->execute();
@@ -83,17 +116,20 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['check_payment'])) {
         $diff = $current_time - $booking_date;
 
         if ($diff > 15 * 60) { // Hơn 15 phút
-            // Cập nhật trạng thái thanh toán thành 'unpaid'
-            $query = "UPDATE bookings SET payment_status = 'unpaid' WHERE user_id = ? AND tour_id = ? AND payment_status = 'unpaid'";
+            // Cập nhật trạng thái thanh toán thành 'failed'
+            $query = "UPDATE bookings SET payment_status = 'failed' WHERE user_id = ? AND tour_id = ? AND payment_status = 'pending'";
             $stmt = $con->prepare($query);
             $stmt->bind_param("ii", $user_id, $tour_id);
             $stmt->execute();
-            echo "<script>alert('Thời gian thanh toán đã hết! Trạng thái thanh toán đã chuyển thành unpaid.');</script>";
+            echo "<script>alert('Thời gian thanh toán đã hết! Trạng thái thanh toán đã chuyển thành failed.');</script>";
         }
     }
 }
 
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $transaction_id = uniqid();
+    $payment_method = $_POST['payment_method'] ?? 'offline';
     $first_name = $_POST['first_name'] ?? '';
     $email = $_POST['email'] ?? '';
     $phone = $_POST['Nophone'] ?? '';
@@ -111,18 +147,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("Vui lòng điền đầy đủ thông tin cá nhân.");
     }
 
-    $variant_id = 1; // Giả sử có biến thể cố định cho mỗi tour
 
-    // Giả sử giá ban đầu lấy từ tour
+    // Tính tổng giá ban đầu dựa trên số người lớn và trẻ em
     $total_price = $tour['adult_price'] * $adults + $tour['child_price'] * $children;
 
-    // Xử lý voucher
+    // Xử lý voucher và tính toán lại total_price nếu voucher hợp lệ
     $voucher_id = null;
     if (!empty($coupon_code)) {
         foreach ($vouchers as $voucher) {
             if ($voucher['voucher_code'] === $coupon_code && $voucher['validity_start'] <= date('Y-m-d') && $voucher['validity_end'] >= date('Y-m-d') && $voucher['quantity'] > 0) {
                 $discount = $voucher['discount']; // Giả sử discount là phần trăm
-                $total_price *= (1 - $discount / 100);
+                $total_price *= (1 - $discount / 100); // Tính lại total_price sau khi áp dụng giảm giá
                 $voucher_id = $voucher['voucher_id'];
                 $query = "UPDATE vouchers SET quantity = quantity - 1 WHERE voucher_id = ?";
                 $stmt = $con->prepare($query);
@@ -136,46 +171,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Kiểm tra thanh toán nếu chọn phương thức thanh toán online
+    // Tạo bản ghi booking với total_price đã tính toán lại
     if ($payment_method === 'online') {
-        $cassoData = getCassoTransactions(); // Lấy dữ liệu giao dịch từ Casso
-
-        // Ghi log dữ liệu từ Casso API
-        error_log(print_r($cassoData, true));
-
-        // Kiểm tra nếu giao dịch đã thanh toán
-        $isPaid = false;
-        foreach ($cassoData['data']['records'] as $transaction) {
-            // Sử dụng strpos để kiểm tra mô tả
-            if (strpos($transaction['description'], "Tour ID: $tour_id") !== false && $transaction['amount'] == $total_price) {
-                $isPaid = true;
-                break;
-            }
-        }
-
-        if ($isPaid) {
-            // Chỉ cho phép đặt tour khi đã thanh toán
-            $query = "INSERT INTO bookings (tour_id, variant_id, user_id, voucher_id, no_adult, no_child, total_price, quantity, `payment methods`, status, payment_status, booking_date, payment_day, created_at) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'complete', 'paid', ?, NOW(), NOW())";
-            $stmt = $con->prepare($query);
-            $stmt->bind_param("iiiiidisss", $tour_id, $variant_id, $user_id, $voucher_id, $adults, $children, $total_price, $quantity, $payment_method, $departure_date);
-            $stmt->execute();
-            $bookingSuccess = true;
-            echo "<script>alert('Thanh toán thành công! Tour đã được đặt.');</script>";
-        } else {
-            echo "<script>alert('Vui lòng thanh toán trước khi xác nhận!');</script>";
-        }
-    } else {
-        // Nếu thanh toán offline, vẫn cho phép đặt tour
-        $query = "INSERT INTO bookings (tour_id, variant_id, user_id, voucher_id, no_adult, no_child, total_price, quantity, `payment methods`, status, payment_status, booking_date, payment_day, created_at) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'complete', 'unpaid', ?, NULL, NOW())";
+        // Tạo booking với trạng thái pending cho thanh toán online
+        $query = "INSERT INTO bookings (tour_id, user_id, voucher_id, no_adult, no_child, total_price, quantity, `payment methods`, status, payment_status, booking_date, created_at, transaction_code) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'complete', 'pending', ?, NOW(), ?)";
         $stmt = $con->prepare($query);
-        $stmt->bind_param("iiiiidisss", $tour_id, $variant_id, $user_id, $voucher_id, $adults, $children, $total_price, $quantity, $payment_method, $departure_date);
+        $stmt->bind_param("iiiidissss", $tour_id, $user_id, $voucher_id, $adults, $children, $total_price, $quantity, $payment_method, $departure_date, $transaction_id);
         $stmt->execute();
+
+        // Lấy booking_id vừa tạo để lấy transaction_code
+        $booking_id = $stmt->insert_id;
+        $query = "SELECT transaction_code FROM bookings WHERE booking_id = ?";
+        $stmt = $con->prepare($query);
+        $stmt->bind_param("i", $booking_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $booking = $result->fetch_assoc();
+        $transaction_code = $booking['transaction_code'];
+
+        // Trả về transaction_code và tổng giá trị cho client để hiển thị QR code
+        // Bọc phần JSON trong các thẻ đặc biệt
+        echo "<!-- JSON_START -->";
+        echo json_encode([
+            'success' => true,
+            'transaction_code' => $transaction_code,
+            'total_price' => $total_price
+        ]);
+        echo "<!-- JSON_END -->";
+        exit();
+    } else {
+        // Thanh toán offline
+        $query = "INSERT INTO bookings (tour_id, user_id, voucher_id, no_adult, no_child, total_price, quantity, `payment methods`, status, payment_status, booking_date, created_at, transaction_code) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'complete', 'unpaid', ?, NOW(), ?)";
+        $stmt = $con->prepare($query);
+        $stmt->bind_param("iiiidissss", $tour_id, $user_id, $voucher_id, $adults, $children, $total_price, $quantity, $payment_method, $departure_date, $transaction_id);
+        $stmt->execute();
+
+        // Trả về phản hồi cho trường hợp offline
         $bookingSuccess = true;
         echo "<script>alert('Đặt tour thành công! Bạn đã chọn phương thức thanh toán offline.');</script>";
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -348,20 +386,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <li><strong>Tổng giá:</strong> <span id="confirm-total"></span></li>
                 </ul>
 
-                <!-- Hiển thị mã QR của VietQR, chỉ hiển thị khi chọn thanh toán online -->
-                <div id="qr-code-section" class="qr-code-section" style="display:none;">
-                    <h3>Thanh toán qua VietQR</h3>
-                    <img id="qr_code" alt="QR Code Thanh Toán" class="qr-code-image" style="width: fit-content; height:fit-content">
-                    <p>Vui lòng quét mã QR để thanh toán</p>
-                </div>
 
                 <!-- Thêm Bộ đếm thời gian -->
-                <div id="countdown-timer" style="font-size: 20px; color: red; margin-top: 10px;">
+                <!-- <div id="countdown-timer" style="font-size: 20px; color: red; margin-top: 10px;">
                     Thời gian còn lại để hoàn tất thanh toán: <span id="timer">15:00</span>
-                </div>
+                </div> -->
 
                 <button type="button" class="prev-step">Quay Lại</button>
                 <button type="submit">Xác Nhận</button>
+            </div>
+
+            <!-- Bước 5 ảo: Hiển thị QR Code -->
+            <div class="form-step" data-step="5" style="display: none;">
+                <h2>Thanh toán qua VietQR</h2>
+                <p>Vui lòng quét mã QR để thanh toán</p>
+                <img id="qr_code" alt="QR Code Thanh Toán" class="qr-code-image" style="width: fit-content; height:fit-content">
             </div>
         </form>
         <?php if ($bookingSuccess) : ?>
@@ -383,16 +422,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         function toggleOnlinePaymentOptions() {
             var paymentMethod = document.getElementById('payment-method').value;
             var selectedPaymentMethodInput = document.getElementById('selected-payment-method');
-            var qrCodeSection = document.getElementById('qr-code-section');
 
             if (paymentMethod === 'online') {
-                qrCodeSection.style.display = 'block'; // Hiển thị mã QR 
+                document.querySelector('.form-step[data-step="4"]').style.display = 'block';
             } else {
-                qrCodeSection.style.display = 'none'; // Ẩn mã QR 
+                document.querySelector('.form-step[data-step="4"]').style.display = 'block'; // Vẫn hiển thị bước 4 cho cả hai
             }
 
-            // Cập nhật giá trị cho input ẩn
-            selectedPaymentMethodInput.value = paymentMethod;
+            selectedPaymentMethodInput.value = paymentMethod; // Cập nhật giá trị cho input ẩn
         }
 
         document.getElementById('payment-method').addEventListener('change', toggleOnlinePaymentOptions);
@@ -438,27 +475,87 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             document.getElementById('confirm-total').innerText = total.toLocaleString('vi-VN') + ' VNĐ';
         }
 
-        function updateQRCode() {
-            console.log("Text value from confirm-total:", totalAmountText);
+        // Hàm gọi khi nhận được phản hồi từ bước 4 (POST form)
+        function handleBookingResponse(response) {
+            if (response.success) {
+                // Ẩn bước 4 và hiển thị bước 5
+                document.querySelector('.form-step[data-step="4"]').style.display = 'none';
+                document.querySelector('.form-step[data-step="5"]').style.display = 'block';
 
-            var totalPrice = parseFloat(totalAmountText.replace(/\D/g, ''));
-            console.log("Giá trị totalPrice sau khi chuyển đổi:", totalPrice);
+                // Tạo QR code với transaction_code từ phản hồi
+                var totalPrice = response.total_price;
+                var transactionCode = response.transaction_code;
 
-            if (!totalPrice || totalPrice <= 0) {
-                console.error("Tổng giá không hợp lệ:", totalPrice);
-                return;
+                // URL của VietQR với các thông tin cần thiết
+                var qrUrl = "https://img.vietqr.io/image/MB-5696911052002-qr_only.png?amount=" + totalPrice +
+                    "&addInfo=" + encodeURIComponent("TransID: " + transactionCode) +
+                    "&accountName=" + encodeURIComponent("VU THU GIANG");
+
+                // Đặt URL của ảnh QR code vào trong phần tử img
+                document.getElementById('qr_code').src = qrUrl;
+
+            } else {
+                alert("Đã xảy ra lỗi khi đặt tour.");
             }
-
-            var tourName = document.getElementById('tour-detail').innerText.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-');
-
-            var qrUrl = "https://img.vietqr.io/image/MB-5696911052002-qr_only.png?amount=" + totalPrice +
-                "&addInfo=" + encodeURIComponent(tourName) +
-                "&accountName=" + encodeURIComponent("VU THU GIANG");
-
-            console.log("Generated QR URL: " + qrUrl);
-
-            document.getElementById('qr_code').src = qrUrl;
         }
+
+        function extractJSON(response) {
+            try {
+                // Tìm vị trí bắt đầu và kết thúc của JSON
+                var jsonStart = response.indexOf("<!-- JSON_START -->");
+                var jsonEnd = response.indexOf("<!-- JSON_END -->");
+
+                if (jsonStart !== -1 && jsonEnd !== -1) {
+                    // Chỉ lấy phần JSON, loại bỏ các khoảng trắng và ký tự không mong muốn
+                    var jsonString = response.substring(jsonStart + 17, jsonEnd).trim();
+
+                    // Loại bỏ bất kỳ ký tự không mong muốn nào trước JSON bằng cách tìm dấu { đầu tiên
+                    jsonString = jsonString.replace(/^[^\{]*/, '');
+
+                    console.log("Chuỗi JSON đã tách:", jsonString);
+                    return JSON.parse(jsonString); // Phân tích JSON sạch
+                } else {
+                    console.error("Không tìm thấy JSON trong phản hồi.");
+                    return null;
+                }
+            } catch (error) {
+                console.error("Lỗi khi phân tích JSON:", error);
+                return null;
+            }
+        }
+
+
+
+
+        document.getElementById('booking-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: this.action, // URL xử lý form
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log("Phản hồi từ server:", response); // Thêm dòng này để in ra phản hồi
+                    try {
+                        var jsonResponse = extractJSON(response);
+                        if (jsonResponse && jsonResponse.success) {
+                            handleBookingResponse(jsonResponse);
+                        } else {
+                            alert("Đã xảy ra lỗi khi đặt tour.");
+                        }
+                    } catch (error) {
+                        console.error("Lỗi khi phân tích JSON:", error);
+                    }
+                },
+                error: function() {
+                    alert("Đã xảy ra lỗi khi gửi yêu cầu.");
+                }
+            });
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             var departureDateInput = document.getElementById('departure-date');
@@ -467,6 +564,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             calculateTotal();
             startCountdown(); // Bắt đầu đếm ngược khi trang tải hoặc khi người dùng đến bước 4
+
+            // Thêm hàm để kiểm tra trạng thái thanh toán định kỳ qua AJAX
+            function checkPaymentStatus() {
+                $.ajax({
+                    url: '', // Trang hiện tại đang xử lý
+                    type: 'GET',
+                    data: {
+                        check_payment_status: true,
+                        tour_id: '<?php echo $tour_id; ?>'
+                    },
+                    success: function(response) {
+                        if (response === 'paid') {
+                            clearInterval(paymentCheckInterval); // Dừng kiểm tra nếu đã thanh toán
+                            countdownActive = false; // Dừng bộ đếm thời gian
+                            $('#qr-code-section').html("<p style='color: green;'>Bạn đã thanh toán tour thành công! Xin cảm ơn.</p>");
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Failed to check payment status:', error);
+                    }
+                });
+            }
+
+            // Kiểm tra trạng thái thanh toán mỗi 5 giây
+            paymentCheckInterval = setInterval(checkPaymentStatus, 5000);
         });
 
         document.getElementById('voucher').addEventListener('change', calculateTotal);
