@@ -9,6 +9,74 @@ if (!$user_id) {
     die("Bạn cần đăng nhập để đặt tour.");
 }
 
+// Hàm để trích xuất mã giao dịch từ mô tả trong Casso
+function extractTransactionCodeFromDescription($description)
+{
+    // Giả sử mã giao dịch có định dạng như TransID: MDH123456
+    preg_match('/TransID:\s*(\w+)/', $description, $matches);
+    if (!isset($matches[1])) {
+        return false;
+    }
+    return $matches[1];
+}
+
+// Sửa lại hàm kiểm tra giao dịch
+function checkTransactionStatus($transaction_code, $booking_id, $con)
+{
+    // Lấy dữ liệu từ Casso
+    $cassoData = getCassoTransactions();
+
+    // In ra transaction_code và dữ liệu trả về từ Casso API để kiểm tra
+    echo "<pre>";
+    echo "Transaction Code from Booking: $transaction_code\n";
+    echo "Casso Data:\n";
+    var_dump($cassoData); // In dữ liệu từ API để kiểm tra
+    echo "</pre>";
+
+    // Kiểm tra các giao dịch trả về từ Casso
+    foreach ($cassoData['data']['records'] as $transaction) {
+        // Lấy mã giao dịch từ mô tả của Casso
+        $extractedTransactionCode = extractTransactionCodeFromDescription($transaction['description']);
+        echo "Extracted Transaction Code: $extractedTransactionCode\n"; // In mã giao dịch được trích xuất
+
+        if ($extractedTransactionCode === $transaction_code && $transaction['amount'] > 0) {
+            echo "Matching transaction found! Updating status...\n"; // In thông báo nếu tìm thấy giao dịch
+
+            // Nếu khớp, cập nhật trạng thái thanh toán
+            $query = "UPDATE bookings SET payment_status = 'paid' WHERE booking_id = ? AND payment_status = 'pending'";
+            $stmt = $con->prepare($query);
+            $stmt->bind_param("i", $booking_id);
+            $stmt->execute();
+            return 'paid';
+        }
+    }
+
+    echo "No matching transaction found. Payment still pending.\n"; // In nếu không tìm thấy giao dịch phù hợp
+    return 'pending';
+}
+
+
+
+
+
+if (isset($_GET['check_payment_status']) && $_GET['check_payment_status'] == 'true') {
+    $booking_id = $_GET['booking_id'] ?? null;
+    $transaction_code = $_GET['transaction_code'] ?? null;
+
+    if (!$booking_id || !$transaction_code) {
+        echo json_encode(['status' => 'invalid']);
+        exit;
+    }
+
+    // Kiểm tra trạng thái thanh toán từ Casso API
+    $status = checkTransactionStatus($transaction_code, $booking_id, $con);
+
+    // Trả về kết quả (paid hoặc pending)
+    echo json_encode(['status' => $status]);
+    exit;
+}
+
+
 
 function getCassoTransactions()
 {
@@ -34,6 +102,7 @@ function getCassoTransactions()
     }
     return $data;
 }
+
 
 // Truy vấn thông tin người dùng từ bảng users
 $query = "SELECT * FROM user_form WHERE id = ?";
@@ -164,6 +233,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<!-- JSON_START -->";
         echo json_encode([
             'success' => true,
+            'booking_id' => $booking_id,
             'transaction_code' => $transaction_code,
             'total_price' => $total_price
         ]);
@@ -455,6 +525,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 document.querySelector('.form-step[data-step="5"]').style.display = 'block';
 
                 // Tạo QR code với transaction_code từ phản hồi
+                var bookingId = response.booking_id;
                 var totalPrice = response.total_price;
                 var transactionCode = response.transaction_code;
 
@@ -466,6 +537,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Đặt URL của ảnh QR code vào trong phần tử img
                 document.getElementById('qr_code').src = qrUrl;
 
+                // Bắt đầu kiểm tra trạng thái thanh toán sau khi booking thành công và QR code hiển thị
+                var paymentCheckInterval = setInterval(function() {
+                    console.log("Checking payment status..."); // In ra log để kiểm tra mỗi lần chạy
+                    checkPaymentStatus(transactionCode, bookingId);
+                }, 5000); // Kiểm tra mỗi 5 giây
+
+
             } else {
                 alert("Đã xảy ra lỗi khi đặt tour.");
             }
@@ -473,18 +551,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         function extractJSON(response) {
             try {
-                // Tìm vị trí bắt đầu và kết thúc của JSON
                 var jsonStart = response.indexOf("<!-- JSON_START -->");
                 var jsonEnd = response.indexOf("<!-- JSON_END -->");
 
                 if (jsonStart !== -1 && jsonEnd !== -1) {
-                    // Chỉ lấy phần JSON, loại bỏ các khoảng trắng và ký tự không mong muốn
                     var jsonString = response.substring(jsonStart + 17, jsonEnd).trim();
-
-                    // Loại bỏ bất kỳ ký tự không mong muốn nào trước JSON bằng cách tìm dấu { đầu tiên
-                    jsonString = jsonString.replace(/^[^\{]*/, '');
-
-                    console.log("Chuỗi JSON đã tách:", jsonString);
+                    jsonString = jsonString.replace(/^[^\{]*/, ''); // Loại bỏ ký tự không mong muốn
+                    console.log("Chuỗi JSON đã tách:", jsonString); // In ra chuỗi JSON
                     return JSON.parse(jsonString); // Phân tích JSON sạch
                 } else {
                     console.error("Không tìm thấy JSON trong phản hồi.");
@@ -495,6 +568,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 return null;
             }
         }
+
 
 
 
@@ -528,6 +602,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             });
         });
+
+        // Thêm hàm AJAX để kiểm tra trạng thái thanh toán
+        function checkPaymentStatus(transactionCode, bookingId) {
+            console.log("Checking payment status for Transaction Code: " + transactionCode + " and Booking ID: " + bookingId);
+
+            $.ajax({
+                url: window.location.href, // URL hiện tại để gửi yêu cầu kiểm tra trạng thái thanh toán
+                type: 'GET',
+                data: {
+                    check_payment_status: true,
+                    booking_id: bookingId, // Lấy từ phản hồi JSON
+                    transaction_code: transactionCode // Lấy từ phản hồi JSON
+                },
+                success: function(response) {
+                    console.log("AJAX response from payment check:", response); // In phản hồi từ server để kiểm tra
+
+                    var jsonResponse = JSON.parse(response);
+                    if (jsonResponse.status === 'paid') {
+                        clearInterval(paymentCheckInterval); // Dừng kiểm tra nếu đã thanh toán thành công
+                        alert('Thanh toán thành công! Trạng thái đã chuyển thành "paid".');
+                        document.getElementById('countdown-timer').style.display = 'none'; // Ẩn bộ đếm thời gian
+                        document.getElementById('qr_code').style.display = 'none'; // Ẩn mã QR
+                        document.querySelector('.form-step[data-step="5"]').innerHTML += "<p style='color: green;'>Thanh toán đã thành công!</p>";
+                    } else {
+                        console.log('Chưa tìm thấy thanh toán, trạng thái vẫn là:', jsonResponse.status);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Lỗi kiểm tra trạng thái thanh toán:', error);
+                }
+            });
+        }
+
+
+
+
+
+
 
         document.addEventListener('DOMContentLoaded', function() {
             var departureDateInput = document.getElementById('departure-date');
