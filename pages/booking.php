@@ -12,48 +12,80 @@ if (!$user_id) {
 // Hàm để trích xuất mã giao dịch từ mô tả trong Casso
 function extractTransactionCodeFromDescription($description)
 {
-    // Giả sử mã giao dịch có định dạng như TransID: MDH123456
-    preg_match('/TransID:\s*(\w+)/', $description, $matches);
+    // Sử dụng biểu thức regex để lấy TransID sau từ khóa "TransID"
+    preg_match('/TransID\s+(\w+)/', $description, $matches);
     if (!isset($matches[1])) {
-        return false;
+        return false;  // Trả về false nếu không tìm thấy mã giao dịch
     }
-    return $matches[1];
+    return $matches[1];  // Trả về mã giao dịch đã trích xuất
 }
 
-// Sửa lại hàm kiểm tra giao dịch
+
+
+// // Sửa lại hàm kiểm tra giao dịch
+// function extractTransactionCodeFromDescription($description)
+// {
+//     preg_match('/TransID:\s*(\w+)/', $description, $matches);
+//     if (!isset($matches[1])) {
+//         return false;
+//     }
+//     return $matches[1];
+// }
+
+// Hàm kiểm tra trạng thái giao dịch
 function checkTransactionStatus($transaction_code, $booking_id, $con)
 {
     // Lấy dữ liệu từ Casso
     $cassoData = getCassoTransactions();
 
     // In ra transaction_code và dữ liệu trả về từ Casso API để kiểm tra
-    echo "<pre>";
+    echo "<!-- JSON_START -->";
     echo "Transaction Code from Booking: $transaction_code\n";
-    echo "Casso Data:\n";
-    var_dump($cassoData); // In dữ liệu từ API để kiểm tra
-    echo "</pre>";
+    echo "Casso Data (Filtered):\n";
 
     // Kiểm tra các giao dịch trả về từ Casso
     foreach ($cassoData['data']['records'] as $transaction) {
-        // Lấy mã giao dịch từ mô tả của Casso
-        $extractedTransactionCode = extractTransactionCodeFromDescription($transaction['description']);
-        echo "Extracted Transaction Code: $extractedTransactionCode\n"; // In mã giao dịch được trích xuất
+        // In ra mô tả từ Casso để kiểm tra
+        echo "Transaction Description: " . $transaction['description'] . "\n";
 
-        if ($extractedTransactionCode === $transaction_code && $transaction['amount'] > 0) {
-            echo "Matching transaction found! Updating status...\n"; // In thông báo nếu tìm thấy giao dịch
+        // Lấy mã giao dịch từ mô tả của Casso
+        $extractedTransactionCode = trim(strval(extractTransactionCodeFromDescription($transaction['description'])));
+
+        // Chuyển `amount` sang kiểu số nguyên để so sánh
+        $transactionAmount = intval($transaction['amount']); // Chuyển đổi `amount` về số nguyên
+
+        // In ra loại của từng transaction code và amount để kiểm tra
+        echo "Booking Transaction Code (type: " . gettype($transaction_code) . "): $transaction_code\n";
+        echo "Casso Transaction Code (type: " . gettype($extractedTransactionCode) . "): $extractedTransactionCode\n";
+        echo "Booking Amount (type: integer): 0 (only comparison, no amount)\n";
+        echo "Casso Amount (type: " . gettype($transactionAmount) . "): $transactionAmount\n";
+
+        // So sánh `transaction_code` và `amount`
+        if ($extractedTransactionCode === trim(strval($transaction_code)) && $transactionAmount > 0) {
+            echo "Matching transaction found! Updating status...\n";
 
             // Nếu khớp, cập nhật trạng thái thanh toán
             $query = "UPDATE bookings SET payment_status = 'paid' WHERE booking_id = ? AND payment_status = 'pending'";
             $stmt = $con->prepare($query);
             $stmt->bind_param("i", $booking_id);
             $stmt->execute();
+
+            // Bọc kết quả trả về trong các thẻ đặc biệt
+            echo "<!-- JSON_START -->";
+            echo json_encode(['status' => 'paid']);
+            echo "<!-- JSON_END -->";
             return 'paid';
         }
     }
 
-    echo "No matching transaction found. Payment still pending.\n"; // In nếu không tìm thấy giao dịch phù hợp
+    // Nếu không tìm thấy giao dịch phù hợp
+    echo "<!-- JSON_START -->";
+    echo json_encode(['status' => 'pending']);
+    echo "<!-- JSON_END -->";
     return 'pending';
 }
+
+
 
 
 
@@ -612,14 +644,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 type: 'GET',
                 data: {
                     check_payment_status: true,
-                    booking_id: bookingId, // Lấy từ phản hồi JSON
-                    transaction_code: transactionCode // Lấy từ phản hồi JSON
+                    booking_id: bookingId,
+                    transaction_code: transactionCode
                 },
                 success: function(response) {
                     console.log("AJAX response from payment check:", response); // In phản hồi từ server để kiểm tra
 
-                    var jsonResponse = JSON.parse(response);
-                    if (jsonResponse.status === 'paid') {
+                    // Sử dụng extractJSON để tách JSON từ phản hồi
+                    var jsonResponse = extractJSON(response);
+                    if (jsonResponse && jsonResponse.status === 'paid') {
                         clearInterval(paymentCheckInterval); // Dừng kiểm tra nếu đã thanh toán thành công
                         alert('Thanh toán thành công! Trạng thái đã chuyển thành "paid".');
                         document.getElementById('countdown-timer').style.display = 'none'; // Ẩn bộ đếm thời gian
@@ -634,6 +667,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             });
         }
+
 
 
 
